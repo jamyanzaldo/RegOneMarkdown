@@ -1,0 +1,113 @@
+---
+title: "Reg-One-Markdown"
+author: "Jamy Anzaldo"
+date: "April 25, 2019"
+output: html_document
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(tidyverse)
+require(tigerstats)
+```
+
+## First Read in the data
+
+```{r}
+theData <- read.csv(file="mydata.csv",header = TRUE)
+```
+
+Now we are gonna look at what relations exist between our variables with plots
+
+## Including Plots
+
+You can also embed plots, for example:
+
+##ggplot SIMS~ARM
+```{r}
+basicNN <- ggplot(theData,aes(x=SIMS,y=ARM))
+```
+##SIMS and ARM plot
+
+```{r}
+basicNN + geom_point() 
+basicNN + geom_point() + geom_lm()
+basicNN + geom_point() + geom_lm()+ geom_smooth()
+```
+
+##Lets take a look at how SIMS and GRIP correlate
+
+```{r}
+basicN2 <- ggplot(theData,aes(x=SIMS,y=GRIP))
+```
+
+##SIMS and GRIP plots
+
+```{r}
+basicN2 + geom_point() 
+basicN2 + geom_point() + geom_lm()
+basicN2 + geom_point() + geom_lm()+ geom_smooth()
+``` 
+
+##Lets take a look at how SIMS and GRIP + ARM correlate
+
+```{r}
+basicN3 <- ggplot(theData,aes(x=SIMS,y=GRIP + ARM))
+```
+##Sims and GRIP + ARM plots
+```{r}
+basicN3 + geom_point() 
+basicN3 + geom_point() + geom_lm()
+basicN3 + geom_point() + geom_lm()+ geom_smooth()
+``` 
+
+# Build 3 regression Models; Model1 is SIMS~ARM, Model2 is SIMS~GRIP, and Model3 is SIMS~ARM+GRIP
+
+```{r}
+M1 <- lm(SIMS ~ ARM, data=theData) 
+summary.lm(M1)
+summary(M1)$adj.r.squared
+```
+```{r}
+M2 <- lm(SIMS ~ GRIP, data=theData) 
+summary.lm(M2)
+summary(M2)$adj.r.squared
+```  
+```{r}
+M3 <- lm(SIMS ~ ARM + GRIP, data=theData) 
+summary.lm(M2)
+summary(M2)$adj.r.squared
+``` 
+
+## now we'll give a value of 104  for GRIP and 98 for ARM to begin finding the 95% interval for sims
+
+```{r}
+new <- data.frame(ARM=c(98),GRIP=c(104))
+```
+#### Now lets see what the three models predict - Here is M1
+
+```{r}
+predict.lm(M1,new)
+```
+#AND here is m2
+```{r}
+predict.lm(M2,new)
+``` 
+#Now we find the 95% interval for m1 & m2
+#m1
+```{r}
+predict.lm(M1,new,interval = "prediction",se.fit = TRUE)
+```
+95% interval for M1 is (-1.185858, 3.689886)
+#M2
+```{r}
+predict.lm(M2,new,interval = "prediction",se.fit = TRUE)
+```
+95% interval for M2 is (-2.64982, 2.486771)
+ 
+Which means Arm is a better predictor of SIMS than GRIP is.
+
+###Now we will compare Model1 with Model3 using anova
+```{r}
+anova(M1,M3)
+```
+since adding the GRIP o Arm it redued the room for error and since the p value is 4.994e-06 (which is less than .05) it means that there is a significant diffrencebetween model 1 and model 3
